@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nagpur Municipal Corporation | Unified Civic Grievance & Smart Governance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-section">
+        <div class="brand-logo-emblem">🏛️</div>
+        <div class="brand-titles">
+          <h1 data-i18n="app_title">नागपूर महानगरपालिका</h1>
+          <p data-i18n="portal_subtitle">एकात्मिक नागरी तक्रार व स्मार्ट प्रशासन प्रणाली</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <!-- Language Switcher -->
+        <div class="lang-selector-group">
+          <button class="lang-btn active" data-lang="mr">मराठी</button>
+          <button class="lang-btn" data-lang="hi">हिंदी</button>
+          <button class="lang-btn" data-lang="en">English</button>
+        </div>
+
+        <!-- Role / Persona Switcher -->
+        <div class="role-selector-group">
+          <button class="role-btn active" data-role="citizen">
+            👤 <span data-i18n="citizen_tab">नागरिक (सुनिता - आसी नगर)</span>
+          </button>
+          <button class="role-btn" data-role="field">
+            🔧 <span data-i18n="field_tab">क्षेत्रीय अभियंता (OCW)</span>
+          </button>
+          <button class="role-btn" data-role="admin">
+            📊 <span data-i18n="admin_tab">कमांड सेंटर (झोनल आयुक्त)</span>
+          </button>
+        </div>
+
+        <!-- Demo Reset Button -->
+        <button id="btn-reset-demo" class="btn-reset-demo" title="Reset Demo Data to Initial Baseline State" onclick="resetDemoState()">
+          🔄 <span data-i18n="reset_btn">डेमो रीसेट</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quick Interactive Demo Scenarios for One-Click Understanding -->
+  <div class="scenario-bar">
+    <div class="scenario-title">
+      <span>⚡</span>
+      <span data-i18n="scenario_title">झटपट टेस्ट सिनेरिओ (Quick Demo Scenarios):</span>
+    </div>
+    <div class="scenario-pills">
+      <button type="button" class="scenario-pill active" onclick="selectScenario('sunita')">
+        👩‍💼 <span data-i18n="scenario_1">१. सुनिताची तक्रार व OTP बंद (Citizen Flow)</span>
+      </button>
+      <button type="button" class="scenario-pill" onclick="selectScenario('field')">
+        🔧 <span data-i18n="scenario_2">२. OCW क्षेत्रीय दुरुस्ती (Field Engineer)</span>
+      </button>
+      <button type="button" class="scenario-pill" onclick="selectScenario('admin')">
+        📊 <span data-i18n="scenario_3">३. कमांड सेंटर व पाय चार्ट (Zonal Analytics)</span>
+      </button>
+      <button type="button" class="scenario-pill" onclick="selectScenario('twist')">
+        🌟 <span data-i18n="scenario_4">४. ट्विस्ट: डिजिटल समावेशन (Digital Inclusion Mode)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Low Connectivity / Offline Simulator Banner -->
+  <div id="offline-banner" class="offline-banner" style="display: none;">
+    <div>⚠️ <strong>Field Offline Mode Active:</strong> Operating in low-connectivity Ashi Nagar sector. Work updates cached locally in browser.</div>
+    <span style="font-size: 0.75rem; background: #f59e0b; color: #fff; padding: 2px 6px; border-radius: 4px;">ServiceWorker LocalCache Enabled</span>
+  </div>
+
+  <main class="main-content">
+
+    <!-- ==================== 7. TWIST DEMONSTRATION PANEL: DIGITAL INCLUSION MODE ==================== -->
+    <section class="twist-panel-container" id="twist-demo-panel">
+      <div class="twist-panel-card">
+        
+        <!-- Twist Header -->
+        <div class="twist-panel-header">
+          <div class="twist-header-left">
+            <div class="twist-badge-tag">
+              <span class="pulse-dot"></span>
+              <span data-i18n="twist_badge">७. ट्विस्ट प्रात्यक्षिक पॅनेल (TWIST DEMO)</span>
+            </div>
+            <h2 class="twist-panel-title">
+              <span class="twist-title-icon">🌟</span>
+              <span data-i18n="twist_title">डिजिटल समावेशन मोड (Digital Inclusion Mode)</span>
+            </h2>
+            <p class="twist-panel-sub" data-i18n="twist_subtitle">
+              कमी तांत्रिक साक्षरता व स्थानिक भाषिक नागरिकांसाठी तंत्रज्ञान अडथळे दूर करणारी प्रणाली
+            </p>
+          </div>
+          <div class="twist-header-right">
+            <div class="twist-status-pill">
+              <span class="cap-check-icon">✓</span>
+              <span data-i18n="twist_status_tag">सक्रिय प्रणाली क्षमता (Active)</span>
+            </div>
+            <button type="button" class="twist-toggle-btn" onclick="toggleTwistPanelCollapse()" id="btn-toggle-twist" title="टॉगल करा (Collapse/Expand)">
+              <span id="twist-toggle-icon">−</span> <span data-i18n="twist_collapse_btn">कमी करा</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Explaining How The System Solves The Challenge -->
+        <div class="twist-content-body" id="twist-content-body">
+          <div class="twist-explainer-box">
+            <div class="twist-explainer-badge">
+              <span>💡</span>
+              <strong data-i18n="twist_how_solved_title">डिजिटल समावेशन मोड: ही प्रणाली नागरी आव्हाने कशी सोडवते? (How The System Solves The Challenge):</strong>
+            </div>
+            <p class="twist-explainer-text" data-i18n="twist_how_solved_desc">
+              पारंपरिक शासकीय अ‍ॅप्स इंग्रजी भाषेची सक्ती, संथ इंटरनेट आणि क्लिष्ट सरकारी प्रक्रियांमुळे सामान्य व अल्प-साक्षर नागरिकांना निरुपयोगी ठरतात. नागपूर मनपाच्या <strong>'डिजिटल समावेशन मोड'</strong>ने हे आव्हान मुळापासून सोडवले आहे: मराठी व हिंदी बोलून तक्रार नोंदवणे, साध्या कीपॅड मोबाईलसाठी थेट एसएमएस व व्हॉट्सॲप पावती, इंटरनेट नसताना स्थानिक पातळीवर ऑफलाईन साठवणूक, अत्यंत कमी डेटा वापर, आणि चित्रांवर टॅप करून सुलभ तक्रार नोंदणी—सोबतीला नागरिकांच्या स्वतःच्या ६-अंकी ओटीपी शिवाय तक्रार परस्पर बंद न होण्याचा पारदर्शक अधिकार!
+            </p>
+          </div>
+
+          <!-- Displaying The 6 Key Capabilities per PRD Requirements -->
+          <div class="capabilities-grid">
+            
+            <!-- 1. Offline Support -->
+            <div class="capability-card" onclick="triggerInclusionAction('offline')" title="ऑफलाईन मोड टेस्ट करा (Click to test Offline Mode)">
+              <div class="cap-card-top">
+                <span class="cap-check-badge">✓</span>
+                <h3 class="cap-title" data-i18n="cap_offline_title">✓ Offline Support (ऑफलाईन सपोर्ट)</h3>
+              </div>
+              <p class="cap-desc" data-i18n="cap_offline_desc">
+                इंटरनेट पूर्णपणे बंद असतानाही स्थानिक ब्राउझर कॅशिंगद्वारे तक्रारी व क्षेत्रीय काम अखंड सुरू राहते व नेटवर्क आल्यावर आपोआप सिंक होते.
+              </p>
+              <div class="cap-action-pill">
+                <span>📡</span>
+                <span data-i18n="cap_offline_btn">ऑफलाईन मोड टेस्ट करा</span>
+              </div>
+            </div>
+
+            <!-- 2. SMS Services -->
+            <div class="capability-card" onclick="triggerInclusionAction('sms')" title="थेट एसएमएस/व्हॉट्सॲप पावती संदेश पाहा">
+              <div class="cap-card-top">
+                <span class="cap-check-badge">✓</span>
+                <h3 class="cap-title" data-i18n="cap_sms_title">✓ SMS Services (एसएमएस व व्हॉट्सॲप सेवा)</h3>
+              </div>
+              <p class="cap-desc" data-i18n="cap_sms_desc">
+                स्मार्टफोन किंवा इंटरनेट नसणाऱ्या नागरिकांसाठी साध्या मोबाईलवर तात्काळ ६-अंकी OTP व अधिकृत डिजिटल पावती संदेश थेट पाठवला जातो.
+              </p>
+              <div class="cap-action-pill">
+                <span>💬</span>
+                <span data-i18n="cap_sms_btn">थेट एसएमएस/OTP पाहा</span>
+              </div>
+            </div>
+
+            <!-- 3. Voice Assistance -->
+            <div class="capability-card" onclick="triggerInclusionAction('voice')" title="मराठी/हिंदी बोलून तक्रार नोंदवा (Test Voice Input)">
+              <div class="cap-card-top">
+                <span class="cap-check-badge">✓</span>
+                <h3 class="cap-title" data-i18n="cap_voice_title">✓ Voice Assistance (व्हॉइस सहाय्यक)</h3>
+              </div>
+              <p class="cap-desc" data-i18n="cap_voice_desc">
+                लिहिता-वाचता न येणाऱ्या नागरिकांसाठी थेट मराठी व हिंदीमध्ये बोलून तक्रार टाईप करणारी वेब स्पीच सुविधा.
+              </p>
+              <div class="cap-action-pill">
+                <span>🎙️</span>
+                <span data-i18n="cap_voice_btn">बोलून टेस्ट करा</span>
+              </div>
+            </div>
+
+            <!-- 4. Marathi/Hindi/English -->
+            <div class="capability-card" onclick="triggerInclusionAction('lang')" title="१-क्लिक भाषा बदला (Cycle Language)">
+              <div class="cap-card-top">
+                <span class="cap-check-badge">✓</span>
+                <h3 class="cap-title" data-i18n="cap_lang_title">✓ Marathi/Hindi/English (त्रिभाषिक सुलभता)</h3>
+              </div>
+              <p class="cap-desc" data-i18n="cap_lang_desc">
+                एका क्लिकवर संपूर्ण पोर्टल, पावत्या आणि स्टेटस मराठी, हिंदी व इंग्रजी भाषेत शुद्ध देवनागरी लिपीत रूपांतरित होतात.
+              </p>
+              <div class="cap-action-pill">
+                <span>🌐</span>
+                <span data-i18n="cap_lang_btn">भाषा बदला (Cycle)</span>
+              </div>
+            </div>
+
+            <!-- 5. Low-Bandwidth Mode -->
+            <div class="capability-card" onclick="triggerInclusionAction('bandwidth')" id="cap-bandwidth-card" title="कमी बँडविड्थ मोड टॉगल करा">
+              <div class="cap-card-top">
+                <span class="cap-check-badge">✓</span>
+                <h3 class="cap-title" data-i18n="cap_bandwidth_title">✓ Low-Bandwidth Mode (कमी-बँडविड्थ मोड)</h3>
+              </div>
+              <p class="cap-desc" data-i18n="cap_bandwidth_desc">
+                ५० केबीपेक्षा कमी हलके पेज, १००% शुद्ध एसव्हीजी ग्राफिक्स आणि शून्य जड फाइल्स—२जी नेटवर्कवरही सेकंदात लोड होते.
+              </p>
+              <div class="cap-action-pill">
+                <span>⚡</span>
+                <span data-i18n="cap_bandwidth_btn">डेटा बचत मोड चालू/बंद</span>
+              </div>
+            </div>
+
+            <!-- 6. Simple Citizen Interface -->
+            <div class="capability-card" onclick="triggerInclusionAction('simple_ui')" title="सुलभ व्हिज्युअल ग्रिड पाहा">
+              <div class="cap-card-top">
+                <span class="cap-check-badge">✓</span>
+                <h3 class="cap-title" data-i18n="cap_simple_ui_title">✓ Simple Citizen Interface (सुलभ नागरिक इंटरफेस)</h3>
+              </div>
+              <p class="cap-desc" data-i18n="cap_simple_ui_desc">
+                चित्रांवर टॅप करून तक्रार निवड, स्वयंचलित जीपीएस प्रभाग शोध आणि कर्मचाऱ्यांची मनमानी रोखणारी नागरिक-नियंत्रित ओटीपी बंद प्रक्रिया.
+              </p>
+              <div class="cap-action-pill">
+                <span>👁️</span>
+                <span data-i18n="cap_simple_ui_btn">व्हिज्युअल ग्रिड हायलाइट करा</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== PERSONA 1: CITIZEN PORTAL ==================== -->
+    <section id="view-citizen" class="persona-view active">
+      <div class="view-grid-citizen">
+        
+        <!-- Left Column: Grievance Registration -->
+        <div class="card">
+          <!-- Language-First Welcome Banner -->
+          <div class="lang-welcome-bar">
+            <div class="lang-welcome-title">
+              <span>🗣️</span>
+              <span data-i18n="lang_select_prompt">तुमची भाषा निवडा / अपनी भाषा चुनें / Select Language:</span>
+            </div>
+            <div class="lang-pill-buttons">
+              <button type="button" class="lang-pill active" onclick="setLanguage('mr')">🚩 मराठी</button>
+              <button type="button" class="lang-pill" onclick="setLanguage('hi')">🇮🇳 हिंदी</button>
+              <button type="button" class="lang-pill" onclick="setLanguage('en')">🌐 English</button>
+            </div>
+          </div>
+
+          <div class="card-header">
+            <h2 data-i18n="report_title">नवीन नागरी तक्रार नोंदवा</h2>
+            <span class="badge badge-reported" id="form-zone-badge">Zone 9: Ashi Nagar</span>
+          </div>
+          <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.25rem;" data-i18n="report_desc">
+            जीपीएस प्रभाग मॅपिंग, तात्काळ डिजिटल पावती व नागरिक-नियंत्रित बंद प्रक्रियेसह थेट तक्रार.
+          </p>
+
+          <form id="grievance-form">
+            <div class="form-group">
+              <label data-i18n="name_label">नागरिकाचे पूर्ण नाव</label>
+              <input type="text" id="form-name" class="form-control" value="Sunita Meshram" required>
+            </div>
+
+            <div class="form-group">
+              <label data-i18n="phone_label">मोबाईल नंबर (एसएमएस व व्हॉट्सॲप पावतीसाठी)</label>
+              <input type="tel" id="form-phone" class="form-control" value="+91 98230 45678" required>
+            </div>
+
+            <!-- Tap-to-Select Visual Grid per PRD Core Requirement -->
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <label data-i18n="category_label" style="margin: 0;">तक्रारीचा प्रकार (चित्रावर टॅप करा)</label>
+                <span id="selected-agency-badge" class="badge" style="background:#fef3c7; color:#b45309; font-weight:700;">Orange City Water (OCW)</span>
+              </div>
+              
+              <div class="category-visual-grid" id="category-grid">
+                <div class="category-card active" data-val="pipeline_burst" data-agency="OCW" data-agency-name="Orange City Water (OCW)">
+                  <div class="category-icon">💧</div>
+                  <div class="category-title" data-i18n="cat_pipeline">जलवाहिनी गळती</div>
+                  <div class="category-sub">Orange City Water</div>
+                </div>
+                <div class="category-card" data-val="pothole" data-agency="NMC_PWD" data-agency-name="NMC Public Works (PWD)">
+                  <div class="category-icon">🚧</div>
+                  <div class="category-title" data-i18n="cat_pothole">रस्त्यावरील खड्डे</div>
+                  <div class="category-sub">NMC PWD</div>
+                </div>
+                <div class="category-card" data-val="garbage_overflow" data-agency="NMC_SWM" data-agency-name="NMC Solid Waste (SWM)">
+                  <div class="category-icon">🗑️</div>
+                  <div class="category-title" data-i18n="cat_garbage">कचरा व अस्वच्छता</div>
+                  <div class="category-sub">NMC SWM</div>
+                </div>
+                <div class="category-card" data-val="streetlight_fault" data-agency="NMC_ELECTRICAL" data-agency-name="NMC Electrical Dept">
+                  <div class="category-icon">💡</div>
+                  <div class="category-title" data-i18n="cat_streetlight">बंद पथदिवे</div>
+                  <div class="category-sub">NMC Electrical</div>
+                </div>
+                <div class="category-card" data-val="drainage_choke" data-agency="NMC_DRAINAGE" data-agency-name="NMC Drainage Cell">
+                  <div class="category-icon">🌊</div>
+                  <div class="category-title" data-i18n="cat_drainage">गटार तुंबणे</div>
+                  <div class="category-sub">NMC Drainage</div>
+                </div>
+                <div class="category-card" data-val="water_contamination" data-agency="OCW" data-agency-name="Orange City Water (OCW)">
+                  <div class="category-icon">🚰</div>
+                  <div class="category-title" data-i18n="cat_contamination">दूषित पाणीपुरवठा</div>
+                  <div class="category-sub">Orange City Water</div>
+                </div>
+              </div>
+              <input type="hidden" id="form-category" value="pipeline_burst">
+            </div>
+
+            <!-- GPS Detection Box -->
+            <div class="form-group">
+              <label data-i18n="gps_label">जीपीएस स्थान व प्रभाग क्रमांक</label>
+              <div class="gps-badge-box">
+                <div class="gps-info" id="gps-display">
+                  📍 <strong>Ashi Nagar (आसी नगर - Zone 9)</strong>, Ward 24, Teka Naka / Kamptee Rd<br>
+                  <span style="font-size: 0.75rem; color: #0284c7;">Lat: 21.1852, Lng: 79.1154 (GPS High Precision)</span>
+                </div>
+                <button type="button" class="btn btn-outline" id="btn-detect-gps" style="font-size: 0.78rem; padding: 4px 8px;">
+                  🔄 <span data-i18n="gps_tag_btn">जीपीएस स्थान शोधा</span>
+                </button>
+              </div>
+              <input type="hidden" id="form-lat" value="21.1852">
+              <input type="hidden" id="form-lng" value="79.1154">
+            </div>
+
+            <div class="form-group">
+              <label data-i18n="admin_zone_label">प्रशासकीय झोन</label>
+              <select id="form-zone" class="form-control">
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+
+            <!-- Description with Voice-Input Option per PRD -->
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <label data-i18n="desc_label" style="margin: 0;">समस्येचे सविस्तर वर्णन</label>
+                <button type="button" id="btn-voice-input" class="voice-btn" title="बोलून नोंदवा (Speak in Marathi/Hindi)">
+                  🎙️ <span id="voice-btn-label" data-i18n="voice_input_btn">बोलून सांगा (Speak)</span>
+                </button>
+              </div>
+
+              <!-- Voice Recording Live Feedback -->
+              <div id="voice-recording-status" class="voice-recording-status" style="display: none;">
+                <span class="recording-pulse"></span>
+                <span id="voice-status-text">ऐकत आहे... कृपया बोला (Listening... Speak your issue)</span>
+              </div>
+
+              <textarea id="form-desc" class="form-control" rows="3" required>आसी नगर प्रभाग २४, कामठी रोड मुख्य पाईपलाईन जोरदार फुटली असून लाखो लिटर पिण्याचे पाणी वाहत आहे.</textarea>
+            </div>
+
+            <!-- Photo Upload Verification Field with Real Camera / File Picker -->
+            <div class="form-group">
+              <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span data-i18n="photo_label">समस्येचा फोटो पुरावा (Photo Evidence)</span>
+                <span style="font-size: 0.75rem; color: #10b981; font-weight: 600;">📷 कॅमेरा / गॅलरी संलग्न</span>
+              </label>
+
+              <!-- Hidden File Input for Real Device Camera & File Selection -->
+              <input type="file" id="form-photo-file" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoFileSelected(event)">
+
+              <div class="photo-upload-actions" style="display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline" id="btn-browse-photo" style="font-size: 0.78rem; padding: 5px 10px; background: #fff;" onclick="document.getElementById('form-photo-file').click()">
+                  📸 <span data-i18n="upload_btn">फोटो काढा / फाइल निवडा</span>
+                </button>
+                <button type="button" class="btn btn-outline" onclick="selectSamplePhoto('pipe')" style="font-size: 0.74rem; padding: 4px 8px; background: #f8fafc;" title="पाणी गळती नमुना">
+                  💧 गळती (Pipe)
+                </button>
+                <button type="button" class="btn btn-outline" onclick="selectSamplePhoto('pothole')" style="font-size: 0.74rem; padding: 4px 8px; background: #f8fafc;" title="रस्त्यावरील खड्डा नमुना">
+                  🚧 खड्डा (Pothole)
+                </button>
+                <button type="button" class="btn btn-outline" onclick="selectSamplePhoto('garbage')" style="font-size: 0.74rem; padding: 4px 8px; background: #f8fafc;" title="कचरा साचणे नमुना">
+                  🗑️ कचरा (Garbage)
+                </button>
+              </div>
+
+              <!-- Interactive Photo Thumbnail & Details Box -->
+              <div id="photo-preview-wrapper" style="display: flex; align-items: center; gap: 12px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px; padding: 8px 12px;">
+                <img id="photo-preview-img" src="/assets/before_defect.svg" alt="Photo Preview" style="width: 72px; height: 52px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                <div style="flex: 1; font-size: 0.78rem;">
+                  <strong id="photo-preview-name" style="color: #0f172a;">before_defect.svg</strong><br>
+                  <span id="photo-preview-status" style="color: #15803d; font-weight: 600;" data-i18n="photo_attached">✅ फोटो पुरावा संलग्न (Photo Attached)</span><br>
+                  <span style="font-size: 0.72rem; color: #64748b;" data-i18n="photo_hint">कॅमेरा, गॅलरी किंवा वरील नमुन्यावर टॅप करा</span>
+                </div>
+              </div>
+              <input type="hidden" id="form-photo-url" value="/assets/before_defect.svg">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" data-i18n="submit_btn">
+              📨 तक्रार नोंदवा व डिजिटल पावती मिळवा
+            </button>
+          </form>
+        </div>
+
+        <!-- Right Column: Ticket Tracker & Citizen-Controlled Closure -->
+        <div class="card">
+          <div class="card-header">
+            <h2 data-i18n="track_title">तक्रार सद्यस्थिती व नागरिक मंजुरी</h2>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="search-ticket-id" class="form-control" style="width: 200px; padding: 4px 8px; font-size: 0.82rem;" value="NMC-2026-ASH-0042">
+              <button id="btn-search-ticket" class="btn btn-primary" style="padding: 4px 10px; font-size: 0.82rem;" data-i18n="search_btn">शोधा</button>
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: #64748b; margin-bottom: 1rem;" data-i18n="track_desc">
+            मनपा नियमानुसार नागरिकांच्या ओटीपी शिवाय तक्रार बंद करता येत नाही. कर्मचाऱ्यांना परस्पर बंद करण्यास बंदी आहे.
+          </p>
+
+          <div id="track-ticket-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <!-- Loaded dynamically -->
+          </div>
+
+          <!-- 5-Step Stepper -->
+          <div class="timeline-stepper">
+            <div class="step-item completed" id="step-1">
+              <div class="step-circle">1</div>
+              <div class="step-label" data-i18n="step_1">तक्रार नोंदणी</div>
+            </div>
+            <div class="step-item completed" id="step-2">
+              <div class="step-circle">2</div>
+              <div class="step-label" data-i18n="step_2">OCW वाटप</div>
+            </div>
+            <div class="step-item completed" id="step-3">
+              <div class="step-circle">3</div>
+              <div class="step-label" data-i18n="step_3">काम सुरू</div>
+            </div>
+            <div class="step-item active" id="step-4">
+              <div class="step-circle">4</div>
+              <div class="step-label" data-i18n="step_4">ओटीपी पडताळणी</div>
+            </div>
+            <div class="step-item" id="step-5">
+              <div class="step-circle">5</div>
+              <div class="step-label" data-i18n="step_5">बंद (Closed)</div>
+            </div>
+          </div>
+
+          <!-- Grievance Details Metadata -->
+          <div style="background: #f8fafc; border-radius: 8px; padding: 0.85rem; font-size: 0.85rem; margin-bottom: 1rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div><strong data-i18n="meta_zone_label">झोन व प्रभाग:</strong> <span id="track-meta-zone">Ashi Nagar - Ward 24</span></div>
+              <div><strong data-i18n="meta_agency_label">जबाबदार विभाग:</strong> <span id="track-meta-agency" style="color: #d97706; font-weight: 700;">Orange City Water</span></div>
+              <div><strong data-i18n="meta_citizen_label">नागरिक:</strong> <span id="track-meta-citizen">Sunita Meshram</span></div>
+              <div><strong data-i18n="meta_sla_label">हमी प्रतिसाद (SLA):</strong> <span id="track-meta-sla" style="color: #10b981; font-weight: 700;">< 4 तास</span></div>
+            </div>
+            <div style="margin-top: 0.5rem; border-top: 1px solid #e2e8f0; padding-top: 0.5rem;">
+              <strong data-i18n="meta_desc_label">तक्रार:</strong> <span id="track-meta-desc">कामठी रोड मुख्य पाईपलाईन जोरदार फुटली आहे.</span>
+            </div>
+          </div>
+
+          <!-- CITIZEN-CONTROLLED CLOSURE VERIFICATION BOX -->
+          <div id="citizen-confirmation-box" class="citizen-verification-card">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 1.3rem;">🔐</span>
+              <h3 style="font-size: 1rem; color: #92400e;" data-i18n="verify_box_title">नागरिक पडताळणी: काम पूर्ण झाल्याची खात्री करा</h3>
+            </div>
+            <p style="font-size: 0.8rem; color: #78350f; margin: 4px 0 8px 0;" data-i18n="verify_box_desc">
+              ऑरेंज सिटी वॉटर (OCW) चमूने दुरुस्ती पूर्ण केल्याचा दावा केला आहे. खालील आधीचा आणि नंतरचा फोटो तपासा:
+            </p>
+
+            <!-- Before vs After Photos -->
+            <div class="photo-compare-grid">
+              <div class="photo-box">
+                <img id="before-img" src="/assets/before_defect.svg" alt="Defect Before">
+                <span data-i18n="verify_before_caption">आधी (गळतीचा फोटो)</span>
+              </div>
+              <div class="photo-box">
+                <img id="after-img" src="/assets/after_repair.svg" alt="Repair After">
+                <span style="color: #15803d;" data-i18n="verify_after_caption">नंतर (दुरुस्ती पुरावा)</span>
+              </div>
+            </div>
+
+            <div style="font-size: 0.8rem; background: #fff; border-radius: 6px; padding: 6px 10px; margin-bottom: 0.75rem; border: 1px solid #fde68a;">
+              <strong data-i18n="tech_notes_label">तंत्रज्ञाची नोंद:</strong> <span id="field-notes-text">Replaced fractured 150mm Cast Iron collar joint with ductile iron repair clamp. Tested under 2.5 bar water pressure.</span>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem;">
+              <label style="font-size: 0.82rem; font-weight: 700; color: #78350f; min-width: 140px;" data-i18n="otp_label">६ अंकी पडताळणी ओटीपी:</label>
+              <input type="text" id="verify-otp-input" class="form-control" style="width: 120px; font-size: 1.1rem; font-weight: 800; letter-spacing: 2px; text-align: center;" value="482910">
+              <span style="font-size: 0.75rem; color: #b45309;" data-i18n="demo_prefill_tag">(डेमो प्री-फिल)</span>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <input type="text" id="citizen-feedback-input" class="form-control" style="font-size: 0.82rem;" placeholder="अभिप्राय (ऐच्छिक) - उदा. पाणीपुरवठा व्यवस्थित सुरू झाला." data-i18n-placeholder="feedback_placeholder">
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <button class="btn btn-success" style="flex: 1;" onclick="confirmCitizenClosure()" data-i18n="btn_confirm_closure">
+                ✅ काम पूर्ण झाले (ओटीपी तपासून बंद करा)
+              </button>
+              <button class="btn btn-danger" onclick="contestResolution()" data-i18n="btn_contest_closure">
+                ⚠️ दुरुस्ती अमान्य करा (समस्या कायम आहे)
+              </button>
+            </div>
+          </div>
+
+          <!-- Inter-Agency Chronological Audit Trail -->
+          <div style="margin-top: 1.5rem;">
+            <h4 style="font-size: 0.9rem; color: #0f172a; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px;">
+              📜 <span data-i18n="audit_title">आंतर-विभागीय अचूक ऑडिट ट्रेल (Audit Trail Log)</span>
+            </h4>
+            <ul id="audit-trail-container" class="audit-list">
+              <!-- Loaded dynamically -->
+            </ul>
+          </div>
+
+          <!-- WhatsApp SMS Notification Dispatch Drawer -->
+          <div style="margin-top: 1.25rem; background: #f1f5f9; border-radius: 8px; padding: 0.75rem;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;" data-i18n="live_notification_label">📱 व्हॉट्सॲप / एसएमएस थेट संदेश (Live Notification Payload):</div>
+            <div id="track-sms-preview" style="font-size: 0.78rem; font-family: monospace; white-space: pre-wrap; color: #0f172a;"></div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== PERSONA 2: FIELD ENGINEER PORTAL ==================== -->
+    <section id="view-field" class="persona-view">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 data-i18n="field_queue_title">क्षेत्रीय कर्मचारी कार्य सूची</h2>
+            <p style="font-size: 0.8rem; color: #64748b;">Orange City Water & NMC Field Crew Operations</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <select id="field-agency-filter" class="form-control" style="width: 220px; font-size: 0.85rem;" onchange="loadFieldQueue()">
+              <option value="OCW">Orange City Water (OCW)</option>
+              <option value="NMC_PWD">NMC Public Works (PWD)</option>
+              <option value="NMC_ELECTRICAL">NMC Electrical Dept</option>
+              <option value="NMC_SWM">NMC Solid Waste Management</option>
+              <option value="NMC_DRAINAGE">NMC Drainage Cell</option>
+            </select>
+            <select id="field-zone-filter" class="form-control" style="width: 180px; font-size: 0.85rem;" onchange="loadFieldQueue()">
+              <!-- Filled dynamically -->
+            </select>
+            <label style="display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: #b45309; cursor: pointer;">
+              <input type="checkbox" id="offline-toggle"> <span data-i18n="offline_toggle">ऑफलाईन मोड</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="field-task-list">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PERSONA 3: EXECUTIVE COMMAND CENTER ==================== -->
+    <section id="view-admin" class="persona-view">
+      
+      <!-- Real-time City KPI Strip -->
+      <div class="kpi-strip">
+        <div class="kpi-tile">
+          <div class="kpi-title" data-i18n="kpi_total">एकूण तक्रारी</div>
+          <div class="kpi-value" id="kpi-total-val">25</div>
+          <div class="kpi-target">१० झोन समाविष्ट</div>
+        </div>
+        <div class="kpi-tile success">
+          <div class="kpi-title" data-i18n="kpi_first_response">सरासरी पहिला प्रतिसाद</div>
+          <div class="kpi-value" id="kpi-response-val">2.8h</div>
+          <div class="kpi-target">उद्दिष्ट: <= 4.0 तास (SLA Achieved)</div>
+        </div>
+        <div class="kpi-tile success">
+          <div class="kpi-title" data-i18n="kpi_unauthorized">अनधिकृत बंद प्रमाण</div>
+          <div class="kpi-value" id="kpi-unauth-val">0.0%</div>
+          <div class="kpi-target">उद्दिष्ट: ०.०% (नागरिक OTP अनिवार्य)</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-title" data-i18n="kpi_regional">स्थानिक भाषा वापर</div>
+          <div class="kpi-value" id="kpi-regional-val">76.0%</div>
+          <div class="kpi-target">उद्दिष्ट: >= ६०% (मराठी व हिंदी)</div>
+        </div>
+        <div class="kpi-tile danger">
+          <div class="kpi-title" data-i18n="kpi_clusters">स्थानिक दोष क्लस्टर</div>
+          <div class="kpi-value" id="kpi-clusters-val">1</div>
+          <div class="kpi-target">आसी नगर जलवाहिनी बिघाड</div>
+        </div>
+        <div class="kpi-tile purple">
+          <div class="kpi-title" data-i18n="kpi_overhaul">प्रकल्पात रूपांतर दर</div>
+          <div class="kpi-value" id="kpi-overhaul-val">0.0%</div>
+          <div class="kpi-target">उद्दिष्ट: >= २०% (Preventative Actions)</div>
+        </div>
+      </div>
+
+      <!-- Visual Analytics & Pie Charts Section -->
+      <div class="pie-charts-grid" style="margin-bottom: 1.5rem;">
+        <!-- Pie Chart 1: Status Distribution -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title" data-i18n="chart_status_title">तक्रार सद्यस्थिती विभागणी (Status Breakdown)</div>
+              <div class="chart-subtitle" data-i18n="chart_status_sub">तक्रारींचे एकूण जीवनचक्र प्रमाण</div>
+            </div>
+          </div>
+          <div class="chart-container" id="chart-status-container"></div>
+          <div class="chart-legend" id="chart-status-legend"></div>
+        </div>
+
+        <!-- Pie Chart 2: Category Breakdown -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title" data-i18n="chart_category_title">नागरी समस्या प्रकार (Category Distribution)</div>
+              <div class="chart-subtitle" data-i18n="chart_category_sub">पाणी, रस्ते, कचरा व इतर विभाग</div>
+            </div>
+          </div>
+          <div class="chart-container" id="chart-category-container"></div>
+          <div class="chart-legend" id="chart-category-legend"></div>
+        </div>
+
+        <!-- Pie Chart 3: Regional Language Adoption -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title" data-i18n="chart_lang_title">स्थानिक भाषा स्वीकार्यता (Language Adoption)</div>
+              <div class="chart-subtitle" data-i18n="chart_lang_sub">मराठी, हिंदी व इंग्रजी वापर प्रमाण</div>
+            </div>
+          </div>
+          <div class="chart-container" id="chart-lang-container"></div>
+          <div class="chart-legend" id="chart-lang-legend"></div>
+        </div>
+      </div>
+
+      <!-- GIS Map & Spatial Cluster Panel -->
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2 data-i18n="map_title">नागपूर जीआयएस प्रादेशिक बुद्धिमत्ता नकाशा</h2>
+              <p style="font-size: 0.8rem; color: #64748b;" data-i18n="map_subtitle">डीबीस्कॅन द्वारे शोधलेले वारंवार दोष व १० प्रशासकीय झोन निरीक्षण</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; font-size: 0.75rem;">
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0284c7;"></span> Registered</span>
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ec4899;"></span> Pending OTP</span>
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span> Closed</span>
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></span> Escalated</span>
+            </div>
+          </div>
+          <div id="gis-map"></div>
+        </div>
+
+        <!-- DBSCAN Predictive Maintenance Alert Box -->
+        <div class="card">
+          <div class="card-header">
+            <h3 data-i18n="clusters_heading">🚨 प्रादेशिक दोष क्लस्टर (DBSCAN)</h3>
+          </div>
+          <p style="font-size: 0.82rem; color: #64748b; margin-bottom: 1rem;" data-i18n="clusters_sub">
+            PostGIS DBSCAN अल्गोरिदम द्वारे आपोआप ओळखलेले वारंवार होणारे गंभीर पायाभूत सुविधा बिघाड:
+          </p>
+
+          <div id="clusters-container">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 10-Zone Matrix & Department Accountability -->
+      <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem;">
+        
+        <!-- 10-Zone Matrix -->
+        <div class="card">
+          <div class="card-header">
+            <h3 data-i18n="zone_matrix_title">१० झोन मनपा कामगिरी तक्ता</h3>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="zone-table">
+              <thead>
+                <tr>
+                  <th data-i18n="col_zone_no">झोन क्र.</th>
+                  <th data-i18n="col_zone_name">नाव</th>
+                  <th data-i18n="col_total">एकूण तक्रारी</th>
+                  <th data-i18n="col_resolved">निवारण</th>
+                  <th data-i18n="col_pending">प्रलंबित</th>
+                  <th data-i18n="col_escalated">वर्ग (Escalated)</th>
+                  <th data-i18n="col_clusters">दोष क्लस्टर</th>
+                  <th data-i18n="col_resolution_rate">निवारण दर</th>
+                </tr>
+              </thead>
+              <tbody id="zone-matrix-tbody">
+                <!-- Loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Department Accountability Index -->
+        <div class="card">
+          <div class="card-header">
+            <h3 data-i18n="dept_index_title">विभाग जबाबदारी निर्देशांक</h3>
+          </div>
+          <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.75rem;">
+            विभागवार सरासरी प्रतिसाद वेळ आणि ०% अनधिकृत बंद प्रमाणाचे पालन:
+          </p>
+          <div style="overflow-x: auto;">
+            <table class="zone-table">
+              <thead>
+                <tr>
+                  <th data-i18n="col_dept_agency">विभाग / यंत्रणा</th>
+                  <th data-i18n="col_dept_resp_time">प्रतिसाद वेळ</th>
+                  <th data-i18n="col_dept_integrity">बंद अखंडता</th>
+                  <th data-i18n="col_dept_status">दर्जा</th>
+                </tr>
+              </thead>
+              <tbody id="dept-index-tbody">
+                <!-- Loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== DIGITAL RECEIPT MODAL ==================== -->
+  <div id="receipt-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="receipt-card">
+        <div class="receipt-header">
+          <div style="font-size: 2rem; margin-bottom: 4px;">🏛️</div>
+          <h2 style="font-size: 1.25rem; color: #0f172a;" data-i18n="receipt.title">नागपूर महानगरपालिका अधिकृत डिजिटल पावती</h2>
+          <p style="font-size: 0.8rem; color: #64748b;">Nagpur Municipal Corporation • Smart Civic Governance</p>
+        </div>
+
+        <div class="receipt-body-row">
+          <span style="color: #64748b;">तक्रार क्रमांक (Tracking ID):</span>
+          <strong id="receipt-ticket-id" style="color: #d97706; font-size: 1.05rem;">NMC-2026-ASH-0042</strong>
+        </div>
+        <div class="receipt-body-row">
+          <span style="color: #64748b;">नोंदणी वेळ (Timestamp):</span>
+          <span id="receipt-timestamp">--</span>
+        </div>
+        <div class="receipt-body-row">
+          <span style="color: #64748b;">झोन व प्रभाग (Zone & Ward):</span>
+          <strong id="receipt-zone">Ashi Nagar - Ward 24</strong>
+        </div>
+        <div class="receipt-body-row">
+          <span style="color: #64748b;">जबाबदार यंत्रणा (Assigned Authority):</span>
+          <strong id="receipt-agency" style="color: #0284c7;">Orange City Water (OCW)</strong>
+        </div>
+        <div class="receipt-body-row">
+          <span style="color: #64748b;">हमी दिलेला प्रतिसाद वेळ (SLA Target):</span>
+          <strong id="receipt-sla" style="color: #15803d;">< 4 Business Hours</strong>
+        </div>
+
+        <!-- Simulated QR Token -->
+        <div style="margin: 1rem 0; text-align: center; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px; padding: 0.75rem;">
+          <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 4px;">अखंडता व पडताळणी टोकन (Verifiable Token):</div>
+          <div id="receipt-qr-code" style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: #0f172a; word-break: break-all;">
+            NMC-VERIFY-2026-ASH-482910
+          </div>
+        </div>
+
+        <!-- Simulated SMS & WhatsApp Notification Preview -->
+        <div class="sms-simulator-box" style="background: #f0fdf4; border-color: #86efac;">
+          <div style="font-size: 0.75rem; font-weight: 700; color: #166534; margin-bottom: 4px;">📲 व्हॉट्सॲप थेट पावती संदेश (WhatsApp Dispatch):</div>
+          <div id="sim-wa-text" style="white-space: pre-wrap; font-size: 0.75rem; color: #14532d;"></div>
+        </div>
+
+        <div class="sms-simulator-box" style="margin-top: 0.5rem; background: #f8fafc; border-color: #cbd5e1;">
+          <div style="font-size: 0.75rem; font-weight: 700; color: #334155; margin-bottom: 4px;">💬 एसएमएस थेट पावती संदेश (SMS Dispatch):</div>
+          <div id="sim-sms-text" style="white-space: pre-wrap; font-size: 0.75rem; color: #1e293b;"></div>
+        </div>
+
+        <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem;">
+          <button class="btn btn-outline" style="flex: 1;" onclick="window.print()">🖨️ पावती मुद्रित करा (Print)</button>
+          <button class="btn btn-primary" style="flex: 1;" onclick="closeReceiptModal()">बंद करा (Close)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SUPERVISOR OVERRIDE MODAL ==================== -->
+  <div id="supervisor-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="card" style="margin: 0;">
+        <div class="card-header">
+          <h3 style="color: #b91c1c;">⚠️ आणीबाणी पर्यवेक्षक ओव्हरराइड (Supervisor Emergency Override)</h3>
+        </div>
+        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 1rem;">
+          मनपा आयुक्तांच्या अधिकारात अपवादात्मक स्थितीत तक्रार बंद करणे. हा निर्णय कायमस्वरूपी ऑडिट लॉगमध्ये नोंदवला जाईल.
+        </p>
+        <div class="form-group">
+          <label>तक्रार क्रमांक (Ticket ID):</label>
+          <input type="text" id="override-ticket-id" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+          <label>पर्यवेक्षकाचे नाव व पदनाम:</label>
+          <input type="text" id="override-supervisor-name" class="form-control" value="Dr. Abhijit Chaudhari, IAS (Municipal Commissioner)">
+        </div>
+        <div class="form-group">
+          <label>ओव्हरराइडचे सविस्तर कारण (Mandatory Audit Justification):</label>
+          <textarea id="override-reason" class="form-control" rows="3" placeholder="उदा. प्रत्यक्ष जागेवर पाहणी करून पाईप दुरुस्ती पूर्ण झाल्याचे निष्पन्न झाले, नागरिक अनुपलब्ध असल्यामुळे बंद करण्यात येत आहे." required></textarea>
+        </div>
+        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+          <button type="button" class="btn btn-outline" style="flex: 1;" onclick="closeSupervisorModal()">रद्द करा (Cancel)</button>
+          <button type="button" class="btn btn-danger" style="flex: 1;" onclick="submitSupervisorOverride()">🚨 ओव्हरराइड नोंदवा</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== WHATSAPP BOT FLOATING LAUNCHER & DRAWER ==================== -->
+  <div id="whatsapp-float-btn" class="whatsapp-float" onclick="toggleWhatsAppDrawer()">
+    <span style="font-size: 1.4rem;">💬</span>
+    <span class="whatsapp-float-label" data-i18n="wa_float_label">WhatsApp तक्रार सहाय्यक</span>
+  </div>
+
+  <div id="whatsapp-drawer" class="whatsapp-drawer">
+    <div class="wa-header">
+      <div class="wa-header-info">
+        <div class="wa-avatar">🏛️</div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.9rem;" data-i18n="wa_title">मनपा स्मार्ट सहाय्यक</div>
+          <div style="font-size: 0.68rem; opacity: 0.85;" data-i18n="wa_status">ऑनलाइन • Automated Bot</div>
+        </div>
+      </div>
+      <button onclick="toggleWhatsAppDrawer()" style="background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer;">✕</button>
+    </div>
+
+    <div id="wa-chat-messages" class="wa-chat-body">
+      <div class="wa-msg bot">
+        नमस्कार! 🙏 नागपूर महानगरपालिका स्मार्ट तक्रार सेवेत आपले स्वागत आहे.<br><br>
+        आपण येथे थेट तक्रार नोंदवू शकता किंवा सद्यस्थिती तपासू शकता.
+        <div class="wa-msg-time">आत्ताच</div>
+      </div>
+      <div class="wa-msg bot">
+        कृपया खालील पर्याय निवडा:
+        <div class="wa-quick-options">
+          <button class="wa-quick-btn" onclick="sendWhatsAppQuick('1')">१. 💧 आसी नगर पाणी गळती तक्रार नोंदवा</button>
+          <button class="wa-quick-btn" onclick="sendWhatsAppQuick('2')">२. 🔍 तक्रार स्थिती तपासा (NMC-2026-ASH-0042)</button>
+          <button class="wa-quick-btn" onclick="sendWhatsAppQuick('3')">३. 📊 आजचे मनपा निवारण प्रमाण जाणून घ्या</button>
+        </div>
+        <div class="wa-msg-time">आत्ताच</div>
+      </div>
+    </div>
+
+    <div class="wa-input-box">
+      <input type="text" id="wa-user-input" class="wa-input" placeholder="संदेश टाईप करा..." data-i18n-placeholder="wa_placeholder" onkeypress="handleWaKeypress(event)">
+      <button class="wa-send-btn" onclick="sendWhatsAppMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/netlify_api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
